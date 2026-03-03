@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT Hub — Reservas & Automatizaciones</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-mark"><div class="dot"></div> IT Hub</div>
+    <div class="logo-sub">Sistema de Gestión</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-section-label">Principal</div>
+    <div class="nav-item active" onclick="navigate('dashboard', this)">
+      <span class="nav-icon">⬡</span> Dashboard
+    </div>
+    <div class="nav-section-label">Equipos TI</div>
+    <div class="nav-item" onclick="navigate('catalogo', this)">
+      <span class="nav-icon">◫</span> Catálogo
+    </div>
+    <div class="nav-item" onclick="navigate('reservas', this)">
+      <span class="nav-icon">◷</span> Reservas
+      <span class="nav-badge" id="badge-reservas">0</span>
+    </div>
+    <div class="nav-section-label">Automatizaciones</div>
+    <div class="nav-item" onclick="navigate('automations', this)">
+      <span class="nav-icon">⚡</span> Registro
+      <span class="nav-badge" id="badge-auto">0</span>
+    </div>
+    <div class="nav-item" onclick="navigate('roi', this)">
+      <span class="nav-icon">◈</span> ROI &amp; Métricas
+    </div>
+    <div class="nav-section-label">Sistema</div>
+    <div class="nav-item" onclick="navigate('config', this)">
+      <span class="nav-icon">⊞</span> Configuración
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="avatar">IT</div>
+      <div>
+        <div class="user-name" id="sidebar-user">Admin TI</div>
+        <div class="user-role" id="sidebar-role">Sistemas &amp; Redes</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="page-title" id="page-title">Dashboard</div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" onclick="openModal('modal-reserva')">+ Reservar equipo</button>
+      <button class="btn btn-primary" onclick="openModal('modal-auto')">⚡ Nueva automatización</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-row">
+        <div class="stat-card" style="--card-accent:var(--accent)">
+          <div class="stat-label">Equipos activos</div>
+          <div class="stat-value" id="st-equipos">0</div>
+          <div class="stat-sub" id="st-equipos-sub"></div>
+          <div class="stat-icon">◫</div>
+        </div>
+        <div class="stat-card" style="--card-accent:var(--accent4)">
+          <div class="stat-label">Reservas pendientes</div>
+          <div class="stat-value" id="st-reservas-hoy">0</div>
+          <div class="stat-sub">esperando aprobación</div>
+          <div class="stat-icon">◷</div>
+        </div>
+        <div class="stat-card" style="--card-accent:var(--accent2)">
+          <div class="stat-label">Automatizaciones</div>
+          <div class="stat-value" id="st-autos">0</div>
+          <div class="stat-sub" id="st-autos-sub"></div>
+          <div class="stat-icon">⚡</div>
+        </div>
+        <div class="stat-card" style="--card-accent:var(--accent3)">
+          <div class="stat-label">Horas ahorradas/año</div>
+          <div class="stat-value" id="st-horas">0h</div>
+          <div class="stat-sub">estimado anual</div>
+          <div class="stat-icon">⧗</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div class="table-wrap">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border)">
+            <div class="section-title">Actividad reciente</div>
+          </div>
+          <div style="padding:16px 20px">
+            <div class="timeline" id="timeline-activity"></div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border)">
+            <div class="section-title">Estado de equipos</div>
+          </div>
+          <table>
+            <thead><tr><th>Equipo</th><th>Usuario</th><th>Estado</th></tr></thead>
+            <tbody id="table-dashboard-equipos"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CATÁLOGO -->
+    <div class="page" id="page-catalogo">
+      <div class="section-header">
+        <div class="section-title">Catálogo de Equipos</div>
+        <button class="btn btn-ghost" onclick="openModal('modal-equipo')">+ Agregar equipo</button>
+      </div>
+      <div class="table-filters">
+        <div class="search-wrap">
+          <input class="search-input" type="text" id="search-catalogo" placeholder="Buscar equipo..." oninput="renderCatalogo()">
+        </div>
+        <select class="filter-select" id="filter-tipo" onchange="renderCatalogo()">
+          <option value="">Todos los tipos</option>
+          <option>Laptop</option><option>Monitor</option><option>Teléfono</option>
+          <option>Tablet</option><option>Proyector</option><option>Impresora</option>
+          <option>Switch</option><option>Router</option><option>Servidor</option>
+        </select>
+        <select class="filter-select" id="filter-estado-cat" onchange="renderCatalogo()">
+          <option value="">Todos los estados</option>
+          <option>Disponible</option><option>En uso</option><option>Mantenimiento</option>
+        </select>
+      </div>
+      <div class="equipment-grid" id="equip-grid"></div>
+    </div>
+
+    <!-- RESERVAS -->
+    <div class="page" id="page-reservas">
+      <div class="section-header">
+        <div class="section-title">Reservas</div>
+        <button class="btn btn-primary" onclick="openModal('modal-reserva')">+ Nueva reserva</button>
+      </div>
+      <div class="cal-strip" id="cal-strip"></div>
+      <div class="table-wrap">
+        <div class="table-filters">
+          <div class="search-wrap">
+            <input class="search-input" type="text" id="search-reservas" placeholder="Buscar reservas..." oninput="renderReservas()">
+          </div>
+          <select class="filter-select" id="filter-estado-res" onchange="renderReservas()">
+            <option value="">Todos</option>
+            <option>Aprobada</option><option>Pendiente</option>
+            <option>Rechazada</option><option>Devuelta</option>
+          </select>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Equipo</th><th>Solicitante</th><th>Área</th>
+              <th>Fecha inicio</th><th>Fecha fin</th><th>Estado</th><th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="table-reservas"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- AUTOMATIZACIONES -->
+    <div class="page" id="page-automations">
+      <div class="section-header">
+        <div class="section-title">Registro de Automatizaciones</div>
+        <button class="btn btn-primary" onclick="openModal('modal-auto')">+ Nueva automatización</button>
+      </div>
+      <div class="table-filters" style="margin-bottom:16px">
+        <div class="search-wrap">
+          <input class="search-input" type="text" id="search-autos" placeholder="Buscar automatización..." oninput="renderAutos()">
+        </div>
+        <select class="filter-select" id="filter-area-auto" onchange="renderAutos()">
+          <option value="">Todas las áreas</option>
+          <option>TI</option><option>RRHH</option><option>Finanzas</option>
+          <option>Operaciones</option><option>Ventas</option><option>Logística</option><option>Marketing</option>
+        </select>
+        <select class="filter-select" id="filter-herramienta" onchange="renderAutos()">
+          <option value="">Todas las herramientas</option>
+          <option>Apps Script</option><option>Power Automate</option><option>Python</option>
+          <option>Zapier</option><option>Make</option><option>n8n</option>
+        </select>
+      </div>
+      <div class="auto-grid" id="auto-grid"></div>
+    </div>
+
+    <!-- ROI -->
+    <div class="page" id="page-roi">
+      <div class="section-header">
+        <div class="section-title">ROI &amp; Métricas de Automatizaciones</div>
+      </div>
+      <div class="roi-box" id="roi-summary"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div class="table-wrap">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border)">
+            <div class="section-title">Top automatizaciones por impacto</div>
+          </div>
+          <div style="padding:16px 20px" id="roi-top-list"></div>
+        </div>
+        <div class="table-wrap">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border)">
+            <div class="section-title">Ahorro por área</div>
+          </div>
+          <div style="padding:16px 20px" id="roi-by-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIG -->
+    <div class="page" id="page-config">
+      <div class="section-header">
+        <div class="section-title">Configuración del Sistema</div>
+      </div>
+      <div class="gs-info">
+        <strong>🔌 Integración con Google Sheets + Apps Script</strong><br><br>
+        1. En tu Google Sheet ejecuta <code>setupSheets()</code> para crear todas las hojas con columnas automáticamente.<br>
+        2. Despliega el script como <strong>Web App</strong> (Ejecutar como: yo, Acceso: cualquiera).<br>
+        3. Copia la URL generada y pégala abajo.<br>
+        4. Guarda y prueba la conexión.
+      </div>
+      <div class="table-wrap" style="padding:24px">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">URL Google Apps Script (Web App)</label>
+            <input class="form-input" type="text" id="gs-url" placeholder="https://script.google.com/macros/s/.../exec">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nombre de la organización</label>
+            <input class="form-input" type="text" id="org-name" value="Mi Empresa">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Usuario actual</label>
+            <input class="form-input" type="text" id="current-user" value="Admin TI">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Área del usuario</label>
+            <input class="form-input" type="text" id="current-area" value="Sistemas &amp; Redes">
+          </div>
+        </div>
+        <div style="margin-top:20px;display:flex;gap:10px">
+          <button class="btn btn-primary" onclick="saveConfig()">Guardar configuración</button>
+          <button class="btn btn-ghost" onclick="testConnection()">Probar conexión</button>
+          <button class="btn btn-ghost" onclick="exportData()">⤓ Exportar JSON</button>
+          <button class="btn btn-ghost" onclick="loadFromGS()">↓ Cargar desde Sheets</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<!-- MODAL: Nueva Reserva -->
+<div class="modal-overlay" id="modal-reserva">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">◷ Nueva Reserva</div>
+      <div class="modal-close" onclick="closeModal('modal-reserva')">×</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Solicitante</label>
+          <input class="form-input" id="r-solicitante" type="text" placeholder="Nombre completo">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Área</label>
+          <select class="form-select" id="r-area">
+            <option>TI</option><option>RRHH</option><option>Finanzas</option>
+            <option>Operaciones</option><option>Ventas</option><option>Logística</option><option>Marketing</option>
+          </select>
+        </div>
+        <div class="form-group form-full">
+          <label class="form-label">Equipo a reservar</label>
+          <select class="form-select" id="r-equipo"><option value="">-- Seleccionar equipo --</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha de inicio</label>
+          <input class="form-input" id="r-inicio" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha de devolución</label>
+          <input class="form-input" id="r-fin" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hora de entrega</label>
+          <input class="form-input" id="r-hora" type="time" value="09:00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Prioridad</label>
+          <select class="form-select" id="r-prioridad">
+            <option>Normal</option><option>Urgente</option><option>Baja</option>
+          </select>
+        </div>
+        <div class="form-group form-full">
+          <label class="form-label">Propósito / Justificación</label>
+          <textarea class="form-textarea" id="r-proposito" placeholder="¿Para qué se necesita el equipo?"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-reserva')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveReserva()">Confirmar reserva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Nueva Automatización -->
+<div class="modal-overlay" id="modal-auto">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <div class="modal-title">⚡ Registrar Automatización</div>
+      <div class="modal-close" onclick="closeModal('modal-auto')">×</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group form-full">
+          <label class="form-label">Nombre de la automatización</label>
+          <input class="form-input" id="a-nombre" type="text" placeholder="Ej: Reporte semanal automático">
+        </div>
+        <div class="form-group form-full">
+          <label class="form-label">Descripción</label>
+          <textarea class="form-textarea" id="a-descripcion" placeholder="¿Qué hace esta automatización?"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Área beneficiada</label>
+          <select class="form-select" id="a-area">
+            <option>TI</option><option>RRHH</option><option>Finanzas</option>
+            <option>Operaciones</option><option>Ventas</option><option>Logística</option><option>Marketing</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Herramienta utilizada</label>
+          <select class="form-select" id="a-herramienta">
+            <option>Apps Script</option><option>Power Automate</option><option>Python</option>
+            <option>Zapier</option><option>Make</option><option>n8n</option><option>Otro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tiempo de desarrollo (horas)</label>
+          <input class="form-input" id="a-dev-horas" type="number" min="0.5" step="0.5" placeholder="Ej: 8">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Horas ahorradas por mes</label>
+          <input class="form-input" id="a-ahorro" type="number" min="0" step="0.5" placeholder="Ej: 20">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha de implementación</label>
+          <input class="form-input" id="a-fecha" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estado</label>
+          <select class="form-select" id="a-estado">
+            <option>Activa</option><option>En pruebas</option><option>Pausada</option><option>Deprecada</option>
+          </select>
+        </div>
+        <div class="form-group form-full">
+          <label class="form-label">¿Qué procesos afectó? (separar con coma)</label>
+          <input class="form-input" id="a-afecto" type="text" placeholder="Ej: Reportes, Correos, Control de BD">
+        </div>
+        <div class="form-group form-full">
+          <label class="form-label">¿Qué mejoró / impacto cualitativo?</label>
+          <textarea class="form-textarea" id="a-mejoro" placeholder="Ej: Eliminó errores manuales, redujo tiempo de respuesta..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Complejidad (1–5)</label>
+          <select class="form-select" id="a-complejidad">
+            <option value="1">1 — Muy simple</option>
+            <option value="2">2 — Simple</option>
+            <option value="3" selected>3 — Media</option>
+            <option value="4">4 — Compleja</option>
+            <option value="5">5 — Muy compleja</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Personas beneficiadas</label>
+          <input class="form-input" id="a-personas" type="number" min="1" placeholder="Ej: 15">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-auto')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveAuto()">Guardar automatización</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Agregar Equipo -->
+<div class="modal-overlay" id="modal-equipo">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">◫ Agregar Equipo</div>
+      <div class="modal-close" onclick="closeModal('modal-equipo')">×</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group form-full">
+          <label class="form-label">Nombre del equipo</label>
+          <input class="form-input" id="e-nombre" type="text" placeholder="Ej: Laptop Dell XPS 15">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo</label>
+          <select class="form-select" id="e-tipo">
+            <option>Laptop</option><option>Monitor</option><option>Teléfono</option>
+            <option>Tablet</option><option>Proyector</option><option>Impresora</option>
+            <option>Switch</option><option>Router</option><option>Servidor</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Número de serie</label>
+          <input class="form-input" id="e-serie" type="text" placeholder="SN-XXXX">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Marca / Modelo</label>
+          <input class="form-input" id="e-modelo" type="text" placeholder="Dell XPS 15">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ubicación actual</label>
+          <input class="form-input" id="e-ubicacion" type="text" placeholder="Sala TI / Almacén">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Año de compra</label>
+          <input class="form-input" id="e-anio" type="number" placeholder="2024" min="2000" max="2030">
+        </div>
+        <div class="form-group form-full">
+          <label class="form-label">Especificaciones técnicas</label>
+          <textarea class="form-textarea" id="e-specs" placeholder="RAM, procesador, almacenamiento..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-equipo')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEquipo()">Agregar equipo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Detalle -->
+<div class="modal-overlay" id="modal-detail">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <div class="modal-title" id="detail-title">Detalle</div>
+      <div class="modal-close" onclick="closeModal('modal-detail')">×</div>
+    </div>
+    <div class="modal-body" id="detail-body"></div>
+    <div class="modal-footer" id="detail-footer"></div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toast-container" id="toasts"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
