@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IT Hub — Configuración</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="sidebar-overlay" onclick="closeMobile()"></div>
+<aside id="sidebar">
+  <div class="logo"><div class="logo-mark"><div class="logo-dot"></div> IT Hub</div><div class="logo-sub">Sistema de Gestión</div></div>
+  <nav class="nav">
+    <div class="nav-section">Principal</div>
+    <a class="nav-item" href="dashboard.html"><span class="nav-icon">⬡</span><span class="nav-label">Dashboard</span></a>
+    <div class="nav-section">Gestión</div>
+    <a class="nav-item" href="equipos.html"><span class="nav-icon">💻</span><span class="nav-label">Equipos</span></a>
+    <a class="nav-item" href="automations.html"><span class="nav-icon">⚡</span><span class="nav-label">Automatizaciones</span></a>
+    <a class="nav-item" href="historial.html"><span class="nav-icon">📋</span><span class="nav-label">Historial</span></a>
+    <div class="nav-section">Sistema</div>
+    <a class="nav-item active" href="config.html"><span class="nav-icon">⊞</span><span class="nav-label">Configuración</span></a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="avatar" id="user-avatar">IT</div>
+      <div style="flex:1;min-width:0"><div class="uname" id="sidebar-user">Admin</div><div class="uorg" id="sidebar-role">IT Hub</div></div>
+      <button class="logout-btn" onclick="doLogout()">↩</button>
+    </div>
+  </div>
+</aside>
+
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button id="menu-btn" onclick="toggleMobile()">☰</button>
+      <div class="page-title">Configuración</div>
+    </div>
+  </div>
+
+  <div class="content" style="max-width:780px">
+
+    <!-- Google Sheets -->
+    <div class="sec-header" style="margin-bottom:10px"><div class="sec-title">Conexión Google Sheets</div></div>
+    <div class="gs-info">
+      <strong>🔌 Configuración en 5 pasos</strong>
+      <div class="steps">
+        <div class="step"><div class="step-body">Abre tu Google Sheet → <strong>Extensiones → Apps Script</strong> → borra el código y pega el contenido de <code>appsscript.gs</code></div></div>
+        <div class="step"><div class="step-body">En el editor, selecciona la función <code>setupSheets</code> y presiona <strong>▶ Ejecutar</strong> — crea las 4 hojas automáticamente (Config, Automatizaciones, Equipos, Historial)</div></div>
+        <div class="step"><div class="step-body">Ve a <strong>Implementar → Nueva implementación → Web App</strong></div></div>
+        <div class="step"><div class="step-body">Configura: <strong>Ejecutar como: Yo</strong> · <strong>Acceso: Cualquier persona</strong> → Implementar</div></div>
+        <div class="step"><div class="step-body">Copia la URL (<code>https://script.google.com/macros/s/.../exec</code>) y pégala abajo</div></div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:20px;margin-bottom:20px">
+      <div class="fg">
+        <label class="fl">URL del Web App (Apps Script)</label>
+        <input class="fi" type="text" id="gs-url" placeholder="https://script.google.com/macros/s/.../exec">
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+        <button class="btn btn-primary" onclick="saveGS()">Guardar URL</button>
+        <button class="btn btn-ghost" onclick="testConnection()">Probar conexión</button>
+        <button class="btn btn-ghost" onclick="syncNow()">↓ Sincronizar todo</button>
+        <button class="btn btn-ghost" onclick="exportAll()">⤓ Exportar JSON</button>
+      </div>
+      <div id="conn-status" style="margin-top:10px;font-size:12px;color:var(--mu);display:none"></div>
+    </div>
+
+    <!-- Sistema -->
+    <div class="sec-header" style="margin-bottom:10px"><div class="sec-title">Sistema</div></div>
+    <div class="card" style="padding:20px;margin-bottom:20px">
+      <div class="row2">
+        <div class="fg">
+          <label class="fl">Nombre de la organización</label>
+          <input class="fi" type="text" id="cfg-org" placeholder="Mi Empresa">
+        </div>
+        <div class="fg">
+          <label class="fl">Nueva contraseña admin</label>
+          <input class="fi" type="password" id="cfg-pass" placeholder="Dejar vacío para no cambiar">
+        </div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="saveSys()">Guardar configuración</button>
+    </div>
+
+    <!-- Códigos de equipos -->
+    <div class="sec-header" style="margin-bottom:10px"><div class="sec-title">Prefijos de Códigos</div></div>
+    <div class="card" style="padding:20px;margin-bottom:20px">
+      <p style="font-size:12.5px;color:var(--mu);margin-bottom:14px">Los prefijos se usan para generar códigos de equipos automáticamente (Ej: <code style="color:var(--a)">W-L</code>001, <code style="color:var(--a)">W-P</code>001)</p>
+      <div class="row3">
+        <div class="fg"><label class="fl">Laptops</label><input class="fi" type="text" id="pref-lap" placeholder="W-L"></div>
+        <div class="fg"><label class="fl">PCs / Workstations</label><input class="fi" type="text" id="pref-pc" placeholder="W-P"></div>
+        <div class="fg"><label class="fl">Monitores</label><input class="fi" type="text" id="pref-mon" placeholder="W-M"></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="savePrefixes()">Guardar prefijos</button>
+    </div>
+
+    <!-- Datos cargados -->
+    <div class="sec-header" style="margin-bottom:10px"><div class="sec-title">Estado de Datos Locales</div></div>
+    <div class="card" style="padding:20px">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+        <div style="background:var(--s2);border:1px solid var(--bd);border-radius:9px;padding:12px;text-align:center">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Equipos</div>
+          <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--a)" id="cnt-eq">0</div>
+        </div>
+        <div style="background:var(--s2);border:1px solid var(--bd);border-radius:9px;padding:12px;text-align:center">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Automatizaciones</div>
+          <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--a2)" id="cnt-au">0</div>
+        </div>
+        <div style="background:var(--s2);border:1px solid var(--bd);border-radius:9px;padding:12px;text-align:center">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Historial</div>
+          <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--a4)" id="cnt-hist">0</div>
+        </div>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="clearLocal()">⚠ Limpiar datos locales</button>
+    </div>
+
+  </div>
+</div>
+
+<div id="toasts"></div>
+<script src="shared.js"></script>
+<script>
+const s = requireAuth();
+if (s) {
+  document.getElementById('user-avatar').textContent = s.name.substring(0,2).toUpperCase();
+  document.getElementById('gs-url').value   = GS.url;
+  document.getElementById('cfg-org').value  = GS.org;
+  document.getElementById('pref-lap').value = localStorage.getItem('pref_lap')||'W-L';
+  document.getElementById('pref-pc').value  = localStorage.getItem('pref_pc')||'W-P';
+  document.getElementById('pref-mon').value = localStorage.getItem('pref_mon')||'W-M';
+  updateCounts();
+}
+
+function updateCounts() {
+  document.getElementById('cnt-eq').textContent   = DB.equipos.length;
+  document.getElementById('cnt-au').textContent   = DB.automatizaciones.length;
+  document.getElementById('cnt-hist').textContent = DB.historial.length;
+}
+
+function saveGS() {
+  const url = document.getElementById('gs-url').value.trim();
+  localStorage.setItem('gs_url', url);
+  toast('s','URL guardada', url ? 'Google Sheets conectado' : 'URL eliminada');
+}
+
+async function testConnection() {
+  const url = document.getElementById('gs-url').value.trim();
+  if (!url) return toast('e','Sin URL','Ingresa la URL del Web App primero');
+  const st = document.getElementById('conn-status');
+  st.style.display = 'block';
+  st.textContent = '⏳ Probando conexión...';
+  try {
+    const r = await fetch(url + '?action=ping');
+    const d = await r.json();
+    if (d.ok) {
+      st.textContent = '✅ Conexión exitosa — ' + (d.message||'');
+      st.style.color = 'var(--a)';
+      toast('s','Conexión exitosa', d.message||'Backend OK');
+    } else {
+      st.textContent = '⚠ Respuesta inesperada';
+      st.style.color = 'var(--a4)';
+    }
+  } catch(e) {
+    st.textContent = '✕ Error: ' + e.message;
+    st.style.color = 'var(--a3)';
+    toast('e','Error de conexión','Verifica la URL y permisos del Web App');
+  }
+}
+
+async function syncNow() {
+  const url = localStorage.getItem('gs_url');
+  if (!url) return toast('e','Sin URL','Guarda la URL primero');
+  toast('i','Sincronizando...','');
+  const ok = await syncAll();
+  if (ok) {
+    updateCounts();
+    toast('s','Sincronizado', `Equipos: ${DB.equipos.length} · Autos: ${DB.automatizaciones.length} · Historial: ${DB.historial.length}`);
+  } else toast('e','Error','No se pudo conectar con Google Sheets');
+}
+
+function saveSys() {
+  const org  = document.getElementById('cfg-org').value.trim();
+  const pass = document.getElementById('cfg-pass').value;
+  if (org) localStorage.setItem('gs_org', org);
+  if (pass) { localStorage.setItem('pass_admin', pass); document.getElementById('cfg-pass').value=''; }
+  toast('s','Configuración guardada','');
+  if (GS.url) gsPost({ action:'setConfig', data:{ clave:'org_name', valor:org } });
+}
+
+function savePrefixes() {
+  localStorage.setItem('pref_lap', document.getElementById('pref-lap').value||'W-L');
+  localStorage.setItem('pref_pc',  document.getElementById('pref-pc').value||'W-P');
+  localStorage.setItem('pref_mon', document.getElementById('pref-mon').value||'W-M');
+  toast('s','Prefijos guardados','');
+}
+
+function exportAll() {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(DB,null,2)],{type:'application/json'}));
+  a.download = 'ithub-backup-' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  toast('i','Backup exportado','');
+}
+
+function clearLocal() {
+  if (!confirm('¿Borrar todos los datos locales? Se perderán si no tienes copia en Google Sheets.')) return;
+  sessionStorage.removeItem('db_autos');
+  sessionStorage.removeItem('db_equips');
+  sessionStorage.removeItem('db_hist');
+  DB.automatizaciones=[]; DB.equipos=[]; DB.historial=[];
+  updateCounts();
+  toast('w','Datos locales borrados','');
+}
+
+function toggleMobile(){ document.getElementById('sidebar').classList.toggle('mobile-open'); document.getElementById('sidebar-overlay').classList.toggle('show'); }
+function closeMobile(){ document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('sidebar-overlay').classList.remove('show'); }
+</script>
+</body>
+</html>

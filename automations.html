@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IT Hub — Automatizaciones</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="sidebar-overlay" onclick="closeMobile()"></div>
+<aside id="sidebar">
+  <div class="logo"><div class="logo-mark"><div class="logo-dot"></div> IT Hub</div><div class="logo-sub">Sistema de Gestión</div></div>
+  <nav class="nav">
+    <div class="nav-section">Principal</div>
+    <a class="nav-item" href="dashboard.html"><span class="nav-icon">⬡</span><span class="nav-label">Dashboard</span></a>
+    <div class="nav-section">Gestión</div>
+    <a class="nav-item" href="equipos.html"><span class="nav-icon">💻</span><span class="nav-label">Equipos</span></a>
+    <a class="nav-item active" href="automations.html"><span class="nav-icon">⚡</span><span class="nav-label">Automatizaciones</span></a>
+    <a class="nav-item" href="historial.html"><span class="nav-icon">📋</span><span class="nav-label">Historial</span></a>
+    <div class="nav-section">Sistema</div>
+    <a class="nav-item" href="config.html"><span class="nav-icon">⊞</span><span class="nav-label">Configuración</span></a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="avatar" id="user-avatar">IT</div>
+      <div style="flex:1;min-width:0"><div class="uname" id="sidebar-user">Admin</div><div class="uorg" id="sidebar-role">IT Hub</div></div>
+      <button class="logout-btn" onclick="doLogout()">↩</button>
+    </div>
+  </div>
+</aside>
+
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button id="menu-btn" onclick="toggleMobile()">☰</button>
+      <div class="page-title">Automatizaciones</div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-ghost btn-sm" onclick="loadFromGS()">↓ Sincronizar</button>
+      <button class="btn btn-primary btn-sm" onclick="openAdd()">+ Nueva</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Stats rápidas -->
+    <div class="stats-row" style="grid-template-columns:repeat(5,1fr);margin-bottom:16px">
+      <div class="stat-card" style="--ca:var(--a)"><div class="stat-label">Total</div><div class="stat-value" id="st-tot">0</div><div class="stat-icon">⚡</div></div>
+      <div class="stat-card" style="--ca:#22c55e"><div class="stat-label">Finalizado</div><div class="stat-value" id="st-fin">0</div><div class="stat-icon">✓</div></div>
+      <div class="stat-card" style="--ca:var(--a4)"><div class="stat-label">En desarrollo</div><div class="stat-value" id="st-dev">0</div><div class="stat-icon">⚙</div></div>
+      <div class="stat-card" style="--ca:var(--a5)"><div class="stat-label">En curso</div><div class="stat-value" id="st-cur">0</div><div class="stat-icon">▶</div></div>
+      <div class="stat-card" style="--ca:var(--a2)"><div class="stat-label">Mant. activo</div><div class="stat-value" id="st-man">0</div><div class="stat-icon">🔧</div></div>
+    </div>
+
+    <div class="card">
+      <div class="filters">
+        <div class="search-box"><input class="search-inp" id="q-au" placeholder="Buscar por nombre, requerimiento, solicitante..." oninput="render()"></div>
+        <select class="sel" id="f-modulo" onchange="render()">
+          <option value="">Todos los módulos</option>
+          <option>Inventario</option><option>Contabilidad</option><option>Administración</option>
+          <option>Marketing</option><option>Costos produccion</option><option>Exportacion e Inventario</option><option>TI</option><option>RRHH</option>
+        </select>
+        <select class="sel" id="f-status" onchange="render()">
+          <option value="">Todos los status</option>
+          <option>Finalizado</option><option>En desarrollo</option><option>En curso</option>
+          <option>Mantenimiento activo</option><option>Cancelado</option><option>Pendiente</option>
+        </select>
+        <select class="sel" id="f-prio" onchange="render()">
+          <option value="">Todas las prioridades</option>
+          <option>Alta</option><option>Media</option><option>Baja</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>N°</th><th>Módulo/Área</th><th>Requerimiento</th><th>Nombre Auto.</th>
+              <th>Solicitante</th><th>Prioridad</th><th>F. Solicitud</th><th>F. Entrega</th>
+              <th>T. Dev.</th><th>Impacto/Ahorro</th><th>Versión</th><th>Ubicación Script</th>
+              <th>Status</th><th>Notas</th><th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tb-au"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NUEVA / EDITAR AUTO -->
+<div class="overlay" id="modal-auto">
+  <div class="modal modal-lg">
+    <div class="mhead">
+      <div class="mtitle" id="modal-au-title">⚡ Nueva Automatización</div>
+      <div class="mclose" onclick="closeModal('modal-auto')">×</div>
+    </div>
+    <div class="mbody">
+      <div class="row2">
+        <div class="fg">
+          <label class="fl">Módulo / Área</label>
+          <select class="fs" id="a-modulo">
+            <option>Inventario</option><option>Contabilidad</option><option>Administración</option>
+            <option>Marketing</option><option>Costos produccion</option>
+            <option>Exportacion e Inventario</option><option>TI</option><option>RRHH</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">Solicitante</label><input class="fi" id="a-sol" type="text" placeholder="Nombre del solicitante"></div>
+      </div>
+      <div class="fg"><label class="fl">Requerimiento</label><textarea class="fta" id="a-req" placeholder="Descripción del requerimiento..."></textarea></div>
+      <div class="fg"><label class="fl">Nombre de la automatización</label><input class="fi" id="a-nom" type="text" placeholder="Ej: AjusteEntrada_Auto"></div>
+      <div class="row3">
+        <div class="fg">
+          <label class="fl">Status</label>
+          <select class="fs" id="a-status">
+            <option>Finalizado</option><option>En desarrollo</option><option>En curso</option>
+            <option>Mantenimiento activo</option><option>Cancelado</option><option>Pendiente</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">Prioridad</label>
+          <select class="fs" id="a-prio"><option>Alta</option><option>Media</option><option>Baja</option></select>
+        </div>
+        <div class="fg"><label class="fl">Versión</label><input class="fi" id="a-ver" type="text" placeholder="1.0"></div>
+      </div>
+      <div class="row2">
+        <div class="fg"><label class="fl">Fecha solicitud</label><input class="fi" id="a-fsol" type="date"></div>
+        <div class="fg"><label class="fl">Fecha entrega</label><input class="fi" id="a-fent" type="date"></div>
+      </div>
+      <div class="row2">
+        <div class="fg"><label class="fl">Tiempo desarrollo (días)</label><input class="fi" id="a-tdev" type="number" min="0" placeholder="Ej: 5"></div>
+        <div class="fg"><label class="fl">Impacto / Ahorro (h/mes)</label><input class="fi" id="a-imp" type="number" min="0" placeholder="Ej: 20"></div>
+      </div>
+      <div class="fg"><label class="fl">Ubicación del script</label><input class="fi" id="a-ubi" type="text" placeholder="Ej: Drive/Scripts/NombreArchivo"></div>
+      <div class="fg"><label class="fl">Notas</label><textarea class="fta" id="a-notas" placeholder="Observaciones, pendientes, etc."></textarea></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-auto')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveAuto()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: DETALLE AUTO -->
+<div class="overlay" id="modal-det-au">
+  <div class="modal modal-lg">
+    <div class="mhead"><div class="mtitle" id="det-au-title">Detalle</div><div class="mclose" onclick="closeModal('modal-det-au')">×</div></div>
+    <div class="mbody" id="det-au-body"></div>
+    <div class="mfoot" id="det-au-foot"></div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+<script src="shared.js"></script>
+<script>
+const s = requireAuth();
+let editingId = null;
+let allAutos = [];
+
+if (s) {
+  document.getElementById('user-avatar').textContent = s.name.substring(0,2).toUpperCase();
+  if (GS.url) {
+    syncAll().then(ok => { if (ok) { buildList(); render(); toast('s','Sincronizado',''); } });
+  } else { buildList(); render(); }
+}
+
+function buildList() {
+  allAutos = DB.automatizaciones;
+  // stats
+  document.getElementById('st-tot').textContent = allAutos.length;
+  document.getElementById('st-fin').textContent = allAutos.filter(a=>a.Status==='Finalizado').length;
+  document.getElementById('st-dev').textContent = allAutos.filter(a=>a.Status==='En desarrollo').length;
+  document.getElementById('st-cur').textContent = allAutos.filter(a=>a.Status==='En curso').length;
+  document.getElementById('st-man').textContent = allAutos.filter(a=>a.Status==='Mantenimiento activo').length;
+}
+
+function render() {
+  buildList();
+  const q  = (document.getElementById('q-au')?.value||'').toLowerCase();
+  const fm = document.getElementById('f-modulo')?.value||'';
+  const fs = document.getElementById('f-status')?.value||'';
+  const fp = document.getElementById('f-prio')?.value||'';
+
+  const items = allAutos.filter(a => {
+    const nom = String(a.NombreAutomatizacion||a.nom||'').toLowerCase();
+    const req = String(a.Requerimiento||a.req||'').toLowerCase();
+    const sol = String(a.Solicitante||a.sol||'').toLowerCase();
+    const mod = String(a.ModuloArea||a.modulo||'');
+    const st  = String(a.Status||a.status||'');
+    const pr  = String(a.Prioridad||a.prio||'');
+    return (nom.includes(q)||req.includes(q)||sol.includes(q)||mod.toLowerCase().includes(q)) &&
+           (!fm||mod===fm) && (!fs||st===fs) && (!fp||pr===fp);
+  });
+
+  document.getElementById('tb-au').innerHTML = items.length ? items.map((a,i) => {
+    const n   = a.N||a.n||(i+1);
+    const mod = a.ModuloArea||a.modulo||'—';
+    const req = a.Requerimiento||a.req||'—';
+    const nom = a.NombreAutomatizacion||a.nom||'—';
+    const sol = a.Solicitante||a.sol||'—';
+    const pr  = a.Prioridad||a.prio||'';
+    const fs_ = a.FechaSolicitud||a.fsol||'';
+    const fe  = a.FechaEntrega||a.fent||'';
+    const td  = a.TiempoDesarrollo||a.tdev||'';
+    const imp = a.ImpactoAhorro||a.imp||'';
+    const ver = a.Version||a.ver||'';
+    const ubi = a.UbicacionScript||a.ubi||'';
+    const st  = a.Status||a.status||'';
+    const nt  = a.Notas||a.notas||'';
+    const uid = a.N||a.id||i;
+    return `<tr onclick="showDetail(${uid})">
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mu)">${n}</td>
+      <td><span class="chip">${mod}</span></td>
+      <td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${req}">${req}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--a);white-space:nowrap">${nom}</td>
+      <td style="font-size:12px">${sol}</td>
+      <td>${pr?bPrio(pr):'—'}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:10px">${fmtDate(fs_)}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:10px">${fmtDate(fe)}</td>
+      <td style="text-align:center;font-size:12px">${td?td+'d':'—'}</td>
+      <td style="text-align:center;font-size:12px;color:var(--a)">${imp?imp+'h/mes':'—'}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mu)">${ver||'—'}</td>
+      <td style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--mu)" title="${ubi}">${ubi||'—'}</td>
+      <td>${bStatus(st)}</td>
+      <td style="font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--mu)" title="${nt}">${nt||'—'}</td>
+      <td onclick="event.stopPropagation()" style="white-space:nowrap">
+        <button class="btn btn-ghost btn-sm btn-icon" onclick="editAuto(${uid})" title="Editar">✎</button>
+      </td>
+    </tr>`;
+  }).join('')
+  : `<tr><td colspan="15"><div class="empty"><div class="empty-ico">⚡</div><div class="empty-t">Sin automatizaciones</div><div class="empty-s">Registra la primera o sincroniza con Google Sheets</div></div></td></tr>`;
+}
+
+function showDetail(uid) {
+  const a = allAutos.find(x=>(x.N||x.id||x.n)==uid||allAutos.indexOf(x)===uid-1);
+  if (!a) return;
+  document.getElementById('det-au-title').textContent = '⚡ ' + (a.NombreAutomatizacion||a.nom||'Detalle');
+  document.getElementById('det-au-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div>
+        <div class="kv"><span class="kk">N°</span><span style="font-family:'IBM Plex Mono',monospace">${a.N||'—'}</span></div>
+        <div class="kv"><span class="kk">Módulo/Área</span><span class="chip">${a.ModuloArea||'—'}</span></div>
+        <div class="kv"><span class="kk">Solicitante</span><strong>${a.Solicitante||'—'}</strong></div>
+        <div class="kv"><span class="kk">Prioridad</span>${a.Prioridad?bPrio(a.Prioridad):'—'}</div>
+        <div class="kv"><span class="kk">Status</span>${bStatus(a.Status||'')}</div>
+        <div class="kv"><span class="kk">Versión</span><code style="font-size:11px;color:var(--a)">${a.Version||'—'}</code></div>
+      </div>
+      <div>
+        <div class="kv"><span class="kk">F. Solicitud</span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px">${fmtDate(a.FechaSolicitud||'')}</span></div>
+        <div class="kv"><span class="kk">F. Entrega</span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px">${fmtDate(a.FechaEntrega||'')}</span></div>
+        <div class="kv"><span class="kk">Tiempo Dev.</span><span>${a.TiempoDesarrollo?a.TiempoDesarrollo+' días':'—'}</span></div>
+        <div class="kv"><span class="kk">Impacto/Ahorro</span><span style="color:var(--a);font-weight:700">${a.ImpactoAhorro?a.ImpactoAhorro+'h/mes':'—'}</span></div>
+        <div class="kv"><span class="kk">Ubicación Script</span><span style="font-size:11px;color:var(--mu)">${a.UbicacionScript||'—'}</span></div>
+      </div>
+    </div>
+    <div style="margin-top:14px"><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Requerimiento</div>
+    <div style="background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px;font-size:12.5px;line-height:1.6">${a.Requerimiento||'—'}</div></div>
+    ${a.Notas?`<div style="margin-top:10px"><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Notas</div>
+    <div style="background:rgba(255,209,102,.05);border:1px solid rgba(255,209,102,.15);border-radius:8px;padding:10px;font-size:12px;color:var(--mu)">${a.Notas}</div></div>`:''}`;
+  document.getElementById('det-au-foot').innerHTML = `
+    <button class="btn btn-ghost" onclick="closeModal('modal-det-au')">Cerrar</button>
+    <button class="btn btn-primary" onclick="closeModal('modal-det-au');editAuto(${a.N||allAutos.indexOf(a)})">✎ Editar</button>`;
+  openModal('modal-det-au');
+}
+
+function openAdd() {
+  editingId = null;
+  document.getElementById('modal-au-title').textContent = '⚡ Nueva Automatización';
+  ['a-sol','a-req','a-nom','a-ver','a-tdev','a-imp','a-ubi','a-notas'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('a-fsol').value='';
+  document.getElementById('a-fent').value='';
+  document.getElementById('a-status').value='En desarrollo';
+  document.getElementById('a-prio').value='Media';
+  openModal('modal-auto');
+}
+
+function editAuto(uid) {
+  const a = allAutos.find(x=>(x.N||x.id)==uid) || allAutos[uid-1];
+  if (!a) return;
+  editingId = a.N||uid;
+  document.getElementById('modal-au-title').textContent = '✎ Editar Automatización';
+  document.getElementById('a-modulo').value  = a.ModuloArea||'';
+  document.getElementById('a-sol').value     = a.Solicitante||'';
+  document.getElementById('a-req').value     = a.Requerimiento||'';
+  document.getElementById('a-nom').value     = a.NombreAutomatizacion||'';
+  document.getElementById('a-status').value  = a.Status||'En desarrollo';
+  document.getElementById('a-prio').value    = a.Prioridad||'Media';
+  document.getElementById('a-ver').value     = a.Version||'1.0';
+  document.getElementById('a-fsol').value    = a.FechaSolicitud||'';
+  document.getElementById('a-fent').value    = a.FechaEntrega||'';
+  document.getElementById('a-tdev').value    = a.TiempoDesarrollo||'';
+  document.getElementById('a-imp').value     = a.ImpactoAhorro||'';
+  document.getElementById('a-ubi').value     = a.UbicacionScript||'';
+  document.getElementById('a-notas').value   = a.Notas||'';
+  openModal('modal-auto');
+}
+
+async function saveAuto() {
+  const session = getSession();
+  const nom = document.getElementById('a-nom').value.trim();
+  if (!nom) return toast('e','Error','El nombre de la automatización es obligatorio');
+
+  const n = editingId ? editingId : (allAutos.length + 1);
+  const data = {
+    N:                   n,
+    ModuloArea:          document.getElementById('a-modulo').value,
+    Requerimiento:       document.getElementById('a-req').value,
+    NombreAutomatizacion:nom,
+    Solicitante:         document.getElementById('a-sol').value,
+    Prioridad:           document.getElementById('a-prio').value,
+    FechaSolicitud:      document.getElementById('a-fsol').value,
+    FechaEntrega:        document.getElementById('a-fent').value,
+    TiempoDesarrollo:    document.getElementById('a-tdev').value,
+    ImpactoAhorro:       document.getElementById('a-imp').value,
+    Version:             document.getElementById('a-ver').value,
+    UbicacionScript:     document.getElementById('a-ubi').value,
+    Status:              document.getElementById('a-status').value,
+    Notas:               document.getElementById('a-notas').value,
+    FechaCreacion:       new Date().toISOString(),
+    CreadoPor:           session?.name||'Admin'
+  };
+
+  if (editingId) {
+    const idx = allAutos.findIndex(x=>(x.N||x.id)==editingId);
+    if (idx>=0) allAutos[idx] = data;
+    gsPost({ action:'update', sheet:'Automatizaciones', id:editingId, data });
+    toast('s','Automatización actualizada', nom);
+  } else {
+    allAutos.push(data);
+    DB.automatizaciones = allAutos;
+    gsPost({ action:'append', sheet:'Automatizaciones', data });
+    toast('s','Automatización registrada', nom);
+  }
+
+  DB.automatizaciones = allAutos;
+  saveDB();
+  closeModal('modal-auto');
+  editingId = null;
+  render();
+}
+
+async function loadFromGS() {
+  if (!GS.url) return toast('w','Sin URL','Configura Google Sheets en Configuración');
+  toast('i','Sincronizando...','');
+  const ok = await syncAll();
+  if (ok) { buildList(); render(); toast('s','Sincronizado',`${DB.automatizaciones.length} registros`); }
+  else toast('e','Error de conexión','Revisa la URL del Web App');
+}
+
+function toggleMobile(){ document.getElementById('sidebar').classList.toggle('mobile-open'); document.getElementById('sidebar-overlay').classList.toggle('show'); }
+function closeMobile(){ document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('sidebar-overlay').classList.remove('show'); }
+</script>
+</body>
+</html>
